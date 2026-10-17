@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.ruff_cache/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Data and training outputs (versioned on Kaggle / W&B, not in git)
+data/
+runs/
+wandb/
+
+# Model artifacts
+*.pt
+*.pth
+*.pte
+*.onnx
