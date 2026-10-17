@@ -24,8 +24,14 @@ DATA_ACTION_MODULES = {
     "stage2-train": "caloreye.stage2.train",
     "stage2-calibrate": "caloreye.stage2.calibrate",
     "eval-run": "caloreye.evalx.run",
+    "export-trained": "caloreye.export.trained",
     "export-s1": "caloreye.data.export_s1",
     "export-s2": "caloreye.data.export_s2"
+}
+EXPORT_ACTION_MODULES = {
+    "spike": "caloreye.export.spike",
+    "parity": "caloreye.export.parity",
+    "bundle": "caloreye.export.bundle"
 }
 PACKAGE_NOT_INSTALLED = "not installed"
 PRIMARY_CUDA_DEVICE_INDEX = 0
@@ -120,6 +126,15 @@ def run_data_action(action_name: str, remaining: list[str]) -> None:
     for report_line in module.main(remaining):
         print(report_line)
 
+def run_export_action(action_name: str, remaining: list[str]) -> None:
+    if action_name == "trained":
+        run_data_action("export-trained", remaining)
+
+        return
+
+    module_name = EXPORT_ACTION_MODULES[action_name]
+    importlib.import_module(module_name).main(remaining)
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="caloreye")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -129,6 +144,7 @@ def main(argv: list[str] | None = None) -> None:
     export_actions.add_parser("spike", help="export both models")
     export_actions.add_parser("parity", help="compare exported outputs and decoded masks")
     export_actions.add_parser("bundle", help="write validated manifest example")
+    export_actions.add_parser("trained", help="export and verify the trained models")
     data_command = commands.add_parser("data", help="dataset preparation")
     data_actions = data_command.add_subparsers(dest="data_action", required=True)
     data_actions.add_parser("manifest", help="scan images, hash and cluster duplicates")
@@ -185,20 +201,7 @@ def main(argv: list[str] | None = None) -> None:
         raise SystemExit(exit_code)
 
     if arguments.command == "export":
-        if arguments.export_action == "spike":
-            from caloreye.export.spike import main as export_spike
-
-            export_spike(remaining)
-
-        if arguments.export_action == "parity":
-            from caloreye.export.parity import main as check_parity
-
-            check_parity(remaining)
-
-        if arguments.export_action == "bundle":
-            from caloreye.export.bundle import main as write_bundle
-
-            write_bundle(remaining)
+        run_export_action(arguments.export_action, remaining)
 
 if __name__ == "__main__":
     main()
