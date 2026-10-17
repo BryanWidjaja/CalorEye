@@ -25,6 +25,7 @@ PARITY_IMAGE_COUNT = 20
 PREDICTION_IMAGE_COUNT = 10
 ABSOLUTE_TOLERANCE = 1e-4
 RELATIVE_TOLERANCE = 1e-3
+COCO_CLASS_COUNT = 80
 STAGE_TWO_SIZE = 224
 STAGE_TWO_CLASS_COUNT = 7
 STAGE_TWO_PADDING = 128
@@ -236,7 +237,12 @@ def save_box_overlay(image_rgb, decoded, prediction, params, overlay_path: Path)
 
     overlay.save(overlay_path)
 
-def compare_one_image(model: YOLO, image_path: Path, overlay_path: Path | None) -> dict:
+def compare_one_image(
+        model: YOLO,
+        image_path: Path,
+        overlay_path: Path | None,
+        class_count: int = COCO_CLASS_COUNT
+    ) -> dict:
     image_rgb = decode.load_image_rgb(image_path)
     input_tensor, params = decode.prepare_stage_one_input(image_rgb)
     canvas_rgb = input_tensor[0].permute(1, 2, 0).mul(PIXEL_SCALE).round().byte().numpy()
@@ -245,7 +251,7 @@ def compare_one_image(model: YOLO, image_path: Path, overlay_path: Path | None) 
     with torch.inference_mode():
         raw_detections, raw_prototypes = model.model(input_tensor)[0]
 
-    settings = decode.DecodeSettings(class_count=80, remove_contained=False)
+    settings = decode.DecodeSettings(class_count=class_count, remove_contained=False)
     decoded = decode.decode_stage_one(raw_detections, raw_prototypes, params, settings)
     prediction = model.predict(
         canvas_bgr,
