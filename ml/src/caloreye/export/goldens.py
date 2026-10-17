@@ -1,0 +1,153 @@
+import argparse
+import io
+import json
+from pathlib import Path
+
+import numpy as np
+from PIL import Image
+
+from caloreye.export.parity import prepare_stage_two_input
+from caloreye.stage1 import decode
+
+EXIF_ORIENTATION_TAG = 274
+EXIF_NORMAL = 1
+EXIF_MIRROR_HORIZONTAL = 2
+EXIF_ROTATE_180 = 3
+EXIF_MIRROR_VERTICAL = 4
+EXIF_TRANSPOSE = 5
+EXIF_ROTATE_90_CLOCKWISE = 6
+EXIF_TRANSVERSE = 7
+EXIF_ROTATE_90_COUNTERCLOCKWISE = 8
+GOLDENS_DIR = Path(__file__).resolve().parents[3] / "contracts" / "goldens"
+VECTOR_NAME = "preprocessing_v0.npz"
+README_NAME = "README.md"
+PIXEL_CHANNEL_COUNT = 3
+SOURCE_HEIGHT = 2
+SOURCE_WIDTH = 3
+CROP_IMAGE_WIDTH = 9
+CROP_IMAGE_HEIGHT = 4
+CROP_MARGIN_FRACTION = 0.2
+JSON_INDENT = 2
+LETTERBOX_CASES = (
+    ("portrait", 3, 9),
+    ("landscape", 9, 3),
+    ("square", 5, 5),
+    ("odd", 7, 4)
+)
+CROP_CASES = (
+    ("center", (2, 1, 6, 3)),
+    ("left_border", (0, 1, 3, 3)),
+    ("right_border", (6, 0, 9, 4))
+)
+
+def source_pixels() -> np.ndarray:
+    values = np.arange(SOURCE_HEIGHT * SOURCE_WIDTH * PIXEL_CHANNEL_COUNT, dtype=np.uint8)
+
+    return values.reshape(SOURCE_HEIGHT, SOURCE_WIDTH, PIXEL_CHANNEL_COUNT)
+
+def orient_pixels(pixels: np.ndarray, orientation: int) -> np.ndarray:
+    if orientation == EXIF_NORMAL:
+        return pixels.copy()
+
+    if orientation == EXIF_MIRROR_HORIZONTAL:
+        return np.fliplr(pixels)
+
+    if orientation == EXIF_ROTATE_180:
+        return np.rot90(pixels, 2)
+
+    if orientation == EXIF_MIRROR_VERTICAL:
+        return np.flipud(pixels)
+
+    if orientation == EXIF_TRANSPOSE:
+        return np.transpose(pixels, (1, 0, 2))
+
+    if orientation == EXIF_ROTATE_90_CLOCKWISE:
+        return np.rot90(pixels, 3)
+
+    if orientation == EXIF_TRANSVERSE:
+        return np.rot90(np.transpose(pixels, (1, 0, 2)), 2)
+
+    if orientation == EXIF_ROTATE_90_COUNTERCLOCKWISE:
+        return np.rot90(pixels)
+
+    raise ValueError(f"Expected EXIF orientation from 1 to 8, found {orientation}")
+
+def encoded_png_with_orientation(pixels: np.ndarray, orientation: int) -> np.ndarray:
+    image = Image.fromarray(pixels)
+    image.getexif()[EXIF_ORIENTATION_TAG] = orientation
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG", exif=image.getexif())
+
+    return np.frombuffer(buffer.getvalue(), dtype=np.uint8)
+
+def crop_box_with_margin(box: tuple, image_width: int, image_height: int) -> tuple:
+    left, top, right, bottom = box
+    horizontal_margin = (right - left) * CROP_MARGIN_FRACTION
+    vertical_margin = (bottom - top) * CROP_MARGIN_FRACTION
+
+    return (
+        max(0, int(np.floor(left - horizontal_margin))),
+        max(0, int(np.floor(top - vertical_margin))),
+        min(image_width, int(np.ceil(right + horizontal_margin))),
+        min(image_height, int(np.ceil(bottom + vertical_margin)))
+    )
+
+def add_exif_vectors(vectors: dict) -> None:
+    pixels = source_pixels()
+
+    for orientation in range(EXIF_NORMAL, EXIF_ROTATE_90_COUNTERCLOCKWISE + 1):
+        vectors[f"exif_encoded_{orientation}"] = encoded_png_with_orientation(pixels, orientation)
+        vectors[f"exif_expected_{orientation}"] = orient_pixels(pixels, orientation)
+
+def add_letterbox_vectors(vectors: dict, metadata: dict) -> None:
+    for case_name, width, height in LETTERBOX_CASES:
+        pixels = np.arange(width * height * PIXEL_CHANNEL_COUNT, dtype=np.uint8)
+        pixels = pixels.reshape(height, width, PIXEL_CHANNEL_COUNT)
+        packed, params = decode.prepare_stage_one_input(pixels)
+        vectors[f"letterbox_source_{case_name}"] = pixels
+        vectors[f"letterbox_packed_{case_name}"] = packed.numpy()
+        metadata[f"letterbox_{case_name}"] = vars(params)
+
+def add_crop_vectors(vectors: dict, metadata: dict) -> None:
+    values = np.arange(CROP_IMAGE_WIDTH * CROP_IMAGE_HEIGHT * PIXEL_CHANNEL_COUNT, dtype=np.uint8)
+    pixels = values.reshape(CROP_IMAGE_HEIGHT, CROP_IMAGE_WIDTH, PIXEL_CHANNEL_COUNT)
+
+    for case_name, box in CROP_CASES:
+        expanded_box = crop_box_with_margin(box, CROP_IMAGE_WIDTH, CROP_IMAGE_HEIGHT)
+        left, top, right, bottom = expanded_box
+        packed = prepare_stage_two_input(pixels[top:bottom, left:right])
+        vectors[f"crop_source_{case_name}"] = pixels
+        vectors[f"crop_packed_{case_name}"] = packed.numpy()
+        metadata[f"crop_{case_name}"] = {
+            "original_box_xyxy": box,
+            "expanded_box_xyxy": expanded_box
+        }
+
+def write_goldens(output_dir: Path) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    vectors = {}
+    metadata = {}
+    add_exif_vectors(vectors)
+    add_letterbox_vectors(vectors, metadata)
+    add_crop_vectors(vectors, metadata)
+    metadata_bytes = json.dumps(metadata, indent=JSON_INDENT).encode()
+    vectors["metadata_json"] = np.frombuffer(metadata_bytes, dtype=np.uint8)
+    np.savez_compressed(output_dir / VECTOR_NAME, **vectors)
+    readme = (
+        "# Synthetic preprocessing goldens v0\n\n"
+        "Generated by `caloreye goldens`; no real photos or model weights are included.\n\n"
+        "The NPZ contains encoded PNG bytes and expected RGB pixels for EXIF orientations 1–8, "
+        "four letterbox cases, and three crop margin/border cases. "
+        "`metadata_json` records geometry. "
+        "Stage-2 crop margin is provisional until its dataset loader is implemented.\n"
+    )
+    (output_dir / README_NAME).write_text(readme, encoding="utf-8")
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output-dir", type=Path, default=GOLDENS_DIR)
+    arguments = parser.parse_args(argv)
+    write_goldens(arguments.output_dir)
+
+if __name__ == "__main__":
+    main()

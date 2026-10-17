@@ -11,7 +11,7 @@ dependencies = [
     # (executorch torch_pin.py), and executorch>=1.5 fails at runtime below torch 2.13.
     "torch==2.14.0",
     "torchvision==0.29.0",
-    "executorch==1.5.0",
+    "executorch==1.5.1",
     # The export-executorch extra carries Ultralytics' numpy<=2.3.5 cap for ExecuTorch export.
     "ultralytics[export-executorch]==8.4.154",
     "timm==1.0.29",
@@ -20,7 +20,6 @@ dependencies = [
     "huggingface-hub>=1.31.0",
     "polars>=1.44.2",
     "pycocotools>=2.0.11",
-    "wandb>=0.30.0",
 ]
 
 [dependency-groups]
@@ -44,3 +43,29 @@ clip = { git = "https://github.com/ultralytics/CLIP.git", rev = "a13192f8cb76726
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[project.scripts]
+caloreye = "caloreye.cli:main"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "N", "ERA", "C90", "PLR0913", "PLR2004", "T20", "SLF", "BLE"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+lines-after-imports = 1
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.lint.pylint]
+max-args = 5
+
+[tool.ruff.lint.per-file-ignores]
+"src/caloreye/cli.py" = ["T201"]
+"tests/*" = ["PLR2004", "SLF001"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
