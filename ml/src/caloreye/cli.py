@@ -108,6 +108,9 @@ def main(argv: list[str] | None = None) -> None:
     export_actions.add_parser("spike", help="export both models")
     export_actions.add_parser("parity", help="compare exported outputs and decoded masks")
     export_actions.add_parser("bundle", help="write validated manifest example")
+    data_command = commands.add_parser("data", help="dataset preparation")
+    data_actions = data_command.add_subparsers(dest="data_action", required=True)
+    data_actions.add_parser("manifest", help="scan images, hash and cluster duplicates")
     commands.add_parser("goldens", help="generate synthetic preprocessing vectors")
     taxonomy_command = commands.add_parser("taxonomy", help="class map build and check")
     taxonomy_command.add_argument("taxonomy_action", choices=["check", "build"])
@@ -121,6 +124,13 @@ def main(argv: list[str] | None = None) -> None:
         from caloreye.export.goldens import main as generate_goldens
 
         generate_goldens(remaining)
+
+    if arguments.command == "data":
+        if arguments.data_action == "manifest":
+            from caloreye.data.manifest import main as build_manifest_report
+
+            for report_line in build_manifest_report(remaining):
+                print(report_line)
 
     if arguments.command == "taxonomy":
         from caloreye.taxonomy import main as run_taxonomy

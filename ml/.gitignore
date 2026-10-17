@@ -7,7 +7,7 @@ __pycache__/
 .ipynb_checkpoints/
 
 # Data and training outputs (versioned on Kaggle / W&B, not in git)
-data/
+/data/
 runs/
 wandb/
 
