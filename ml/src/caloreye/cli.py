@@ -18,7 +18,9 @@ DATA_ACTION_MODULES = {
     "embed": "caloreye.data.embed",
     "clean": "caloreye.data.clean",
     "split": "caloreye.data.splits",
-    "sam3": "caloreye.data.sam3_label"
+    "sam3": "caloreye.data.sam3_label",
+    "export-s1": "caloreye.data.export_s1",
+    "export-s2": "caloreye.data.export_s2"
 }
 PACKAGE_NOT_INSTALLED = "not installed"
 PRIMARY_CUDA_DEVICE_INDEX = 0
@@ -130,6 +132,8 @@ def main(argv: list[str] | None = None) -> None:
     data_actions.add_parser("split", help="freeze grouped train and val splits")
     label_command = commands.add_parser("label", help="pseudo labelling")
     label_command.add_argument("label_action", choices=["sam3"])
+    data_actions.add_parser("export-s1", help="write yolo segmentation dataset")
+    data_actions.add_parser("export-s2", help="write crop spec table")
     commands.add_parser("goldens", help="generate synthetic preprocessing vectors")
     taxonomy_command = commands.add_parser("taxonomy", help="class map build and check")
     taxonomy_command.add_argument("taxonomy_action", choices=["check", "build"])
