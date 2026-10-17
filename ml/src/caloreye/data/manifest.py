@@ -85,7 +85,6 @@ def registered_domain(url_or_host: str) -> str:
 
     return ".".join(labels[-2:])
 
-
 def convert_to_rgb(image: Image.Image) -> Image.Image:
     if image.mode == "RGB":
         return image
@@ -105,7 +104,6 @@ def convert_to_rgb(image: Image.Image) -> Image.Image:
 
     return image.convert("RGB")
 
-
 def compute_phash(rgb_array: np.ndarray) -> int:
     gray = cv2.cvtColor(rgb_array, cv2.COLOR_RGB2GRAY)
     small = cv2.resize(gray, (PHASH_SIZE, PHASH_SIZE), interpolation=cv2.INTER_AREA)
@@ -119,7 +117,6 @@ def compute_phash(rgb_array: np.ndarray) -> int:
 
     return value
 
-
 def read_image_facts(image_path: Path) -> ImageFacts:
     with Image.open(image_path) as image:
         width, height = image.size
@@ -127,7 +124,6 @@ def read_image_facts(image_path: Path) -> ImageFacts:
         rgb_array = np.asarray(convert_to_rgb(image))
 
     return ImageFacts(width=width, height=height, phash=compute_phash(rgb_array))
-
 
 def hash_bytes(image_path: Path) -> tuple[str, int]:
     digest = hashlib.sha256()
@@ -139,7 +135,6 @@ def hash_bytes(image_path: Path) -> tuple[str, int]:
             size_bytes += len(chunk)
 
     return digest.hexdigest(), size_bytes
-
 
 def load_candidates(candidates_path: Path) -> dict[tuple[str, str], dict]:
     records = {}
@@ -158,7 +153,6 @@ def load_candidates(candidates_path: Path) -> dict[tuple[str, str], dict]:
 
     return records
 
-
 def resolve_host(record: dict) -> str:
     for key in HOST_RECORD_KEYS:
         domain = registered_domain(record.get(key) or "")
@@ -167,7 +161,6 @@ def resolve_host(record: dict) -> str:
             return domain
 
     return ""
-
 
 def build_row(image_path: Path, acquisition_dir: Path, record: dict) -> dict:
     image_id, size_bytes = hash_bytes(image_path)
@@ -205,7 +198,6 @@ def build_row(image_path: Path, acquisition_dir: Path, record: dict) -> dict:
 
     return row
 
-
 def list_image_paths(images_dir: Path) -> list[Path]:
     image_paths = []
 
@@ -219,7 +211,6 @@ def list_image_paths(images_dir: Path) -> list[Path]:
 
     return image_paths
 
-
 def scan_rows(acquisition_dir: Path, candidates: dict) -> list[dict]:
     rows = []
     image_paths = list_image_paths(acquisition_dir / IMAGES_DIR_NAME)
@@ -232,7 +223,6 @@ def scan_rows(acquisition_dir: Path, candidates: dict) -> list[dict]:
             logging.warning("scanned %d of %d", position + 1, len(image_paths))
 
     return rows
-
 
 def assign_clusters(frame: pl.DataFrame) -> tuple[pl.DataFrame, int]:
     decodable = frame.filter(pl.col("decodable"))
@@ -249,7 +239,6 @@ def assign_clusters(frame: pl.DataFrame) -> tuple[pl.DataFrame, int]:
     sizes = joined.group_by("dup_cluster").agg(pl.len().cast(pl.Int32).alias("cluster_size"))
 
     return joined.join(sizes, on="dup_cluster", how="left"), result.near_pair_count
-
 
 def summarize(frame: pl.DataFrame, near_pair_count: int) -> list[str]:
     total = frame.height
@@ -271,7 +260,6 @@ def summarize(frame: pl.DataFrame, near_pair_count: int) -> list[str]:
 
     return lines
 
-
 def cross_folder_lines(frame: pl.DataFrame) -> list[str]:
     spans = (
         frame.filter(pl.col("cluster_size") > 1)
@@ -292,7 +280,6 @@ def cross_folder_lines(frame: pl.DataFrame) -> list[str]:
 
     return lines
 
-
 def write_manifest(frame: pl.DataFrame, work_dir: Path, stamp: str) -> Path:
     work_dir.mkdir(parents=True, exist_ok=True)
     dated_path = work_dir / f"manifest-{stamp}.parquet"
@@ -300,7 +287,6 @@ def write_manifest(frame: pl.DataFrame, work_dir: Path, stamp: str) -> Path:
     frame.write_parquet(work_dir / LATEST_MANIFEST_NAME)
 
     return dated_path
-
 
 def build_manifest(data_root: Path, stamp: str) -> tuple[pl.DataFrame, list[str], Path]:
     acquisition_dir = data_root / ACQUISITION_DIR_NAME
@@ -312,7 +298,6 @@ def build_manifest(data_root: Path, stamp: str) -> tuple[pl.DataFrame, list[str]
     report = summarize(frame, near_pair_count) + [""] + cross_folder_lines(frame)
 
     return frame, report, manifest_path
-
 
 def main(argv: list[str] | None = None) -> list[str]:
     parser = argparse.ArgumentParser(prog="caloreye data manifest")

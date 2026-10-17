@@ -1,4 +1,5 @@
 import argparse
+import importlib
 import shutil
 import sys
 from pathlib import Path
@@ -12,6 +13,11 @@ ACQUISITION_IMAGES_RELATIVE_PATH = Path("acquisition") / "images"
 SAM3_CACHE_RELATIVE_PATH = Path(".cache/huggingface/hub/models--facebook--sam3/snapshots")
 SAM3_WEIGHTS_PATTERN = "*/sam3.pt"
 BYTES_PER_GIB = 1024 ** 3
+DATA_ACTION_MODULES = {
+    "manifest": "caloreye.data.manifest",
+    "embed": "caloreye.data.embed",
+    "clean": "caloreye.data.clean"
+}
 PACKAGE_NOT_INSTALLED = "not installed"
 PRIMARY_CUDA_DEVICE_INDEX = 0
 PYTHON_VERSION_COMPONENT_INDEX = 0
@@ -99,6 +105,12 @@ def collect_doctor_status() -> dict[str, str]:
         "SAM 3 weights": sam3_status
     }
 
+def run_data_action(action_name: str, remaining: list[str]) -> None:
+    module = importlib.import_module(DATA_ACTION_MODULES[action_name])
+
+    for report_line in module.main(remaining):
+        print(report_line)
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="caloreye")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -111,6 +123,8 @@ def main(argv: list[str] | None = None) -> None:
     data_command = commands.add_parser("data", help="dataset preparation")
     data_actions = data_command.add_subparsers(dest="data_action", required=True)
     data_actions.add_parser("manifest", help="scan images, hash and cluster duplicates")
+    data_actions.add_parser("embed", help="compute DINOv2 embeddings")
+    data_actions.add_parser("clean", help="flag and drop noisy images")
     commands.add_parser("goldens", help="generate synthetic preprocessing vectors")
     taxonomy_command = commands.add_parser("taxonomy", help="class map build and check")
     taxonomy_command.add_argument("taxonomy_action", choices=["check", "build"])
@@ -126,11 +140,7 @@ def main(argv: list[str] | None = None) -> None:
         generate_goldens(remaining)
 
     if arguments.command == "data":
-        if arguments.data_action == "manifest":
-            from caloreye.data.manifest import main as build_manifest_report
-
-            for report_line in build_manifest_report(remaining):
-                print(report_line)
+        run_data_action(arguments.data_action, remaining)
 
     if arguments.command == "taxonomy":
         from caloreye.taxonomy import main as run_taxonomy

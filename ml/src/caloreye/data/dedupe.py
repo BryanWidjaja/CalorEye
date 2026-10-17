@@ -4,6 +4,7 @@ import numpy as np
 
 HASH_BIT_COUNT = 64
 CHUNK_COUNT = 5
+MIN_BUCKET_SIZE = 2
 HAMMING_THRESHOLD = 4
 CHUNK_BIT_WIDTHS = (13, 13, 13, 13, 12)
 
@@ -12,12 +13,10 @@ class ClusterResult:
     cluster_ids: np.ndarray
     near_pair_count: int
 
-
 def hamming_distances(query_hash: np.uint64, other_hashes: np.ndarray) -> np.ndarray:
     differing_bits = np.bitwise_xor(other_hashes, query_hash)
 
     return np.bitwise_count(differing_bits)
-
 
 def extract_chunk(hashes: np.ndarray, chunk_index: int) -> np.ndarray:
     shift_bits = sum(CHUNK_BIT_WIDTHS[:chunk_index])
@@ -25,7 +24,6 @@ def extract_chunk(hashes: np.ndarray, chunk_index: int) -> np.ndarray:
     shifted = np.right_shift(hashes, np.uint64(shift_bits))
 
     return np.bitwise_and(shifted, mask)
-
 
 def find_root(parents: np.ndarray, node: int) -> int:
     root = node
@@ -40,7 +38,6 @@ def find_root(parents: np.ndarray, node: int) -> int:
 
     return root
 
-
 def union_nodes(parents: np.ndarray, first: int, second: int) -> bool:
     first_root = find_root(parents, first)
     second_root = find_root(parents, second)
@@ -51,7 +48,6 @@ def union_nodes(parents: np.ndarray, first: int, second: int) -> bool:
     parents[max(first_root, second_root)] = min(first_root, second_root)
 
     return True
-
 
 def find_near_pairs(
         hashes: np.ndarray,
@@ -68,14 +64,13 @@ def find_near_pairs(
         ends = np.concatenate((boundaries, [len(order)]))
 
         for start, end in zip(starts, ends, strict=True):
-            if end - start < 2:
+            if end - start < MIN_BUCKET_SIZE:
                 continue
 
             members = order[start:end]
             collect_bucket_pairs(hashes, members, max_distance, pairs)
 
     return sorted(pairs)
-
 
 def collect_bucket_pairs(
         hashes: np.ndarray,
@@ -93,7 +88,6 @@ def collect_bucket_pairs(
             first = int(members[position])
             second = int(members[position + 1 + offset])
             pairs.add((min(first, second), max(first, second)))
-
 
 def cluster_by_hash(
         image_ids: list[str],
