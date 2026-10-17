@@ -16,7 +16,8 @@ BYTES_PER_GIB = 1024 ** 3
 DATA_ACTION_MODULES = {
     "manifest": "caloreye.data.manifest",
     "embed": "caloreye.data.embed",
-    "clean": "caloreye.data.clean"
+    "clean": "caloreye.data.clean",
+    "split": "caloreye.data.splits"
 }
 PACKAGE_NOT_INSTALLED = "not installed"
 PRIMARY_CUDA_DEVICE_INDEX = 0
@@ -125,6 +126,7 @@ def main(argv: list[str] | None = None) -> None:
     data_actions.add_parser("manifest", help="scan images, hash and cluster duplicates")
     data_actions.add_parser("embed", help="compute DINOv2 embeddings")
     data_actions.add_parser("clean", help="flag and drop noisy images")
+    data_actions.add_parser("split", help="freeze grouped train and val splits")
     commands.add_parser("goldens", help="generate synthetic preprocessing vectors")
     taxonomy_command = commands.add_parser("taxonomy", help="class map build and check")
     taxonomy_command.add_argument("taxonomy_action", choices=["check", "build"])
