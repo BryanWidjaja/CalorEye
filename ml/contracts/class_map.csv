@@ -1,0 +1,269 @@
+source_id,name_id,name_en,tier,plan,wave,stage2_class,pilot,notes
+1,Nasi putih,,B,own,1,true,true,white blob; also sits under every other dish; foreign rice differs. Public credit capped at 300
+2,Nasi goreng,,C,own,2,false,false,"huge variation (kampung/seafood/gila/merah); vs nasi kuning, mie goreng"
+3,Nasi campur / rames,,P,comp,2,false,false,"a plate, not a class (D-26): annotate every side separately"
+4,Nasi Padang,,P,comp,2,false,false,many small sides; rendang/gulai/daun singkong/sambal ijo each must be boxed
+5,Ayam goreng,= pilot fried chicken,C,own,1,true,true,two looks: crumb-crispy vs bumbu-kuning home style; need >=300 of each; vs geprek/penyet
+6,Ayam geprek,,C,own,1,true,true,"vs penyet and crispy chicken: same chicken, differs by sambal topping; 855 still missing"
+7,Ayam bakar,,C,own,2,false,false,vs ayam kecap/bacem/panggang; glaze colour changes with light
+8,Ayam penyet,,C,var,2,false,false,near-identical to geprek (merge candidate): keep as variant unless confusion <10%
+9,Mie ayam,,C,own,2,false,false,"vs bakmi Jawa, mie pedas, bakso bowl; toppings change look"
+10,Bakso kuah,,B,own,2,false,false,bakso urat/telur/halus vary; vs mie ayam bakso
+11,Mie goreng,,C,own,1,true,true,"vs bakmi goreng, mi instan goreng, kwetiau, bihun; colour from kecap"
+12,Mi instan kuah,,C,own,3,false,false,brand packs differ; looks like any mie kuah
+13,Soto ayam,,C,own,2,false,false,"vs soto Lamongan, sop ayam; broth colour only cue"
+14,Bubur ayam,,B,own,2,false,false,topping layers; vs bubur kacang hijau/ketan hitam (sweet)
+15,Nasi uduk,,C,var,3,false,false,coconut rice nearly identical to nasi putih in photo; context sides decide
+16,Sate ayam,,B,own,2,false,false,skewer count and sauce vary; vs taichan/kambing
+17,Tempe goreng,,B,own,2,false,false,"vs mendoan, bacem, orek"
+18,Tahu goreng,,B,own,2,false,false,"vs tahu isi, tahu bacem, tahu sumedang"
+19,Telur dadar,,B,own,2,false,false,folded vs flat; with/without vegetables
+20,Telur ceplok,,Ap,own,2,false,false,fried egg is distinct; sunny/over-hard both needed
+21,Gado-gado,,B,own,2,false,false,"vs pecel, ketoprak, karedok: same peanut sauce"
+22,Pecel sayur,,C,own,3,false,false,vs gado-gado/urap/karedok; cooked greens under sauce
+23,Siomay Bandung,,B,own,2,false,false,plate of mixed pieces: potato/egg/tofu/cabbage must be boxed separately
+24,Batagor,,B,own,2,false,false,vs fried tahu/siomay goreng
+25,Seblak,,B,own,2,false,false,orange broth with cracker; varied toppings
+26,Cilok,,C,grp,3,false,false,small balls; vs cimol/cilor/bakso aci (grp: bola_aci)
+27,Martabak manis,,B,own,2,false,false,cut slices of many toppings
+28,Martabak telur,,B,own,2,false,false,vs lumpia/pastel when cut
+29,Pisang goreng,,A,own,2,false,false,distinct; need crumb-coated and plain
+30,Bakwan sayur,,C,grp,3,false,false,fritter family (bala-bala/ote-ote/perkedel)
+31,Nasi kuning,,B,own,2,false,false,"turmeric colour; vs nasi uduk, nasi goreng"
+32,Nasi liwet Solo,,P,comp,3,false,false,plate set; rice itself looks like uduk
+33,Nasi timbel,,P,comp,3,false,false,banana-leaf wrap hides rice
+34,Nasi kucing,,P,comp,3,false,false,tiny wrapped packets; wrapper hides contents
+35,Ketoprak,,C,own,3,false,false,"vs gado-gado, kupat tahu, lontong sayur"
+36,Kupat tahu,,C,own,3,false,false,vs ketoprak
+37,Lontong sayur,,C,own,3,false,false,vs opor/sayur lodeh with lontong
+38,Opor ayam,,C,own,2,false,false,"vs gulai ayam, soto santan, ayam kuning"
+39,Rendang daging,= pilot rendang,C,own,1,true,true,"vs semur, gulai, kalio, empal; dark stew on rice"
+40,Rawon,,B,own,2,false,false,black broth is distinct but beef pieces hidden
+41,Soto Betawi,,C,own,3,false,false,"coconut-milk beef soup; vs soto ayam, gulai"
+42,Soto Lamongan,,C,var,3,false,false,koya topping only cue vs soto ayam (merge candidate)
+43,Soto Madura,,C,own,3,false,false,offal/beef; BE confuses soto family
+44,Sop ayam,,C,own,3,false,false,"clear soup vs sayur sop, soto bening"
+45,Sop iga,,B,own,3,false,false,rib bones visible; vs sop buntut/konro
+46,Tongseng kambing,,C,own,3,false,false,vs gulai kambing/sop kambing (BE F1 0.57)
+47,Gulai ayam,,C,own,2,false,false,"vs opor, kari; yellow/orange coconut gravy"
+48,Sate kambing,,C,own,3,false,false,vs sate ayam/sapi; large dark cubes
+49,Sate taichan,,B,own,3,false,false,white unsauced skewers; vs sate ayam
+50,Pecel lele,,P,comp,2,false,false,plate = lele + lalapan + sambal + rice: box each
+51,Lele goreng,,B,own,2,false,false,whole fish; vs ikan goreng
+52,Ikan goreng,,C,own,2,false,false,species vary (nila/kembung/gurame/bandeng)
+53,Ikan bakar,,C,own,2,false,false,species + sambal glaze vary
+54,Ayam kecap,,C,own,3,false,false,vs ayam bakar/semur ayam
+55,Semur daging,,C,own,3,false,false,vs rendang/rawon; brown sweet-soy stew
+56,Telur balado,,B,own,3,false,false,egg under red sambal; vs telur ceplok balado
+57,Telur pindang,,B,own,3,false,false,brown marbled egg; vs telur rebus/kecap
+58,Perkedel kentang,,B,own,3,false,false,vs bakwan/tahu isi round fritters
+59,Tempe orek,,C,own,3,false,false,small pieces in sauce; vs tempe kering/tumis
+60,Tempe bacem,,C,own,3,false,false,dark glaze; vs tahu bacem
+61,Tahu bacem,,C,own,3,false,false,vs tempe bacem and tahu goreng
+62,Sayur asem,,C,own,3,false,false,clear soup with corn/chayote; vs sayur lodeh
+63,Sayur lodeh,,C,own,3,false,false,coconut vegetable soup; vs sayur asem
+64,Capcay,,B,own,3,false,false,mixed stir-fry; vs sayur campur
+65,Tumis kangkung,,B,own,2,false,false,leaf shape distinct
+66,Tumis buncis,,C,own,3,false,false,green stir-fries look alike
+67,Urap sayur,,C,own,3,false,false,"vs kuluban (BE F1 0.42), pecel, gado-gado"
+68,Karedok,,C,own,3,false,false,raw vs cooked cue is subtle; vs gado-gado
+69,Lalapan,,D,grp,2,false,false,raw cucumber/cabbage/basil/tomato: boxable separately
+70,Sambal terasi,,D,grp,2,false,false,sauce colour/amount only; see grp: sambal
+71,Sambal bawang,,D,grp,2,false,false,pale chilli-garlic; vs terasi; grp: sambal
+72,Kerupuk,,D,grp,2,false,false,6 types (udang/putih/kulit/emping/rengginang/kripik); 600 total
+73,Rempeyek kacang,,B,own,3,false,false,flat crisp; vs kerupuk
+74,Tahu isi,,B,own,3,false,false,vs bakwan/perkedel
+75,Tempe mendoan,,B,own,2,false,false,thin battered; vs tempe goreng
+76,Risoles,,C,own,3,false,false,vs pastel/lumpia/dadar gulung
+77,Pastel,,C,own,3,false,false,vs risoles
+78,Lumpia Semarang,,C,own,3,false,false,fried vs steamed; vs risoles
+79,Cireng,,C,grp,3,false,false,fried tapioca family: cireng/cimol/cilor/basreng
+80,Cimol,,C,grp,3,false,false,vs cireng/cilok
+81,Cilor,,C,grp,3,false,false,vs cimol
+82,Basreng,,C,grp,3,false,false,fried bakso strips/slices
+83,Telur gulung,,B,own,3,false,false,skewered; vs sosis
+84,Sosis bakar,,B,own,3,false,false,vs sate; also sausage in other dishes
+85,Nasi bakar,,B,own,3,false,false,wrapped parcel; contents hidden
+86,Mi instan goreng,,C,var,3,false,false,identical to mie goreng by eye (merge candidate)
+87,Bakmi Jawa,,C,own,3,false,false,vs mie goreng/mie rebus
+88,Kwetiau goreng,,C,own,3,false,false,flat noodle width is main cue
+89,Bihun goreng,,C,own,3,false,false,thin vermicelli vs mie
+90,Mie pedas,,C,own,3,false,false,red chilli oil; vs mie goreng
+91,Gudeg,,B,own,3,false,false,brown jackfruit; vs semur
+92,Rujak cingur,,C,own,3,false,false,petis sauce mixed salad; vs gado-gado
+93,Tahu tek,,C,own,3,false,false,vs ketoprak/gado-gado
+94,Lontong balap,,C,own,3,false,false,broth + lontong + lentho; vs lontong sayur
+95,Nasi ayam katsu,,P,comp,3,false,false,plate; katsu cutlet needs its own box class (200 inst.)
+96,Dimsum ayam,,B,own,3,false,false,steamer baskets; vs siomay
+97,Donat,,Ap,own,3,false,false,topping variety only
+98,Roti bakar,,B,own,3,false,false,"vs roti tawar, martabak"
+99,Klepon,,A,own,3,false,false,green coconut balls distinct
+100,Serabi / surabi,,B,own,3,false,false,sweet vs savoury versions
+B1,Beef burger,pilot,A,own,1,true,true,"bun/patty/lettuce stack; need homemade, fast-food and street-burger looks"
+B2,Burger variants,"chicken, cheese, double",Ap,var,2,false,false,same silhouette; variant picked by user
+B3,Kentang goreng,french fries,Ap,own,2,false,false,often beside burger/fried chicken; shoestring vs wedges
+B4,Nugget ayam,,Ap,own,2,false,false,vs fried chicken pieces and tahu crispy
+B5,Pizza slice,,Ap,own,3,false,false,box and slice looks
+B6,Spaghetti / pasta,,B,own,3,false,false,sauce colour; vs mie goreng from above
+B7,Ramen / ramyun,Korean,B,own,3,false,false,vs mi instan kuah and mie ayam
+B8,Sushi / sashimi,,B,own,3,false,false,roll vs nigiri
+B9,Sandwich / toast sandwich,,Ap,own,3,false,false,vs roti bakar
+B10,Hot dog,,Ap,own,3,false,false,vs sosis bakar
+B11,Kebab / burrito / wrap,,B,own,3,false,false,wrapped; contents hidden
+B12,Steak,,B,own,3,false,false,cut and sides vary
+B13,Western salad,,B,own,3,false,false,"vs gado-gado raw, lalapan"
+B14,Tteokbokki / kimbap,,B,own,3,false,false,red rice cake vs seblak
+B15,Roti tawar / bread slices,,Ap,own,2,false,false,"plain, toasted, spread"
+B16,Roti manis / bun / roti cokelat,,Ap,own,2,false,false,filling hidden
+B17,Croissant / pastry,,Ap,own,3,false,false,vs risoles when cut
+B18,Cake slice / bolu / brownies,,Ap,own,3,false,false,frosting colour only cue
+B19,Biskuit / cookies,,B,own,3,false,false,packaged vs homemade
+B20,Pancake / waffle,,Ap,own,3,false,false,"vs martabak manis, serabi"
+B21,Ice cream,,Ap,own,3,false,false,scoop vs cone vs cup
+B22,Popcorn / keripik kentang,,B,own,4,false,false,packaged: brand-heavy
+B23,Kacang goreng / kacang tanah,,B,own,4,false,false,bowl of nuts; vs rempeyek crumbs
+B24,Oatmeal / cereal / bubur instan,,B,own,3,false,false,"bowl, milk colour"
+B25,Lontong / ketupat,,C,own,2,false,false,"rice cake, usually wrapped or sliced; vs nasi, bubur"
+B26,Ubi / singkong rebus,,B,own,3,false,false,"vs kentang rebus, goreng versions"
+B27,Jagung rebus / bakar,,Ap,own,3,false,false,cob distinct
+B28,Kentang rebus,,Ap,own,3,false,false,vs ubi
+B29,Bubur kacang hijau / ketan hitam / sumsum,,B,own,3,false,false,sweet porridges: colour only cue
+B31,Bubur sumsum,,B,own,4,false,false,white with gula merah
+B32,Kolak,,B,own,3,false,false,banana/ubi in coconut syrup
+B33,Pempek,,B,own,2,false,false,"fish cake + cuko; many shapes (kapal selam, lenjer, adaan)"
+B34,Otak-otak,,B,own,3,false,false,banana-leaf grilled; vs pepes
+B35,Tekwan,,C,own,4,false,false,"clear fish-ball soup; vs bakso, sop"
+B36,Tahu campur / tahu telur,,C,own,4,false,false,"vs tahu tek, ketoprak"
+B37,Mie Aceh,,C,own,4,false,false,curry-fried noodles; vs mie goreng
+B38,Mie kocok / mie rebus,,C,own,3,false,false,"vs mie ayam, bakso"
+B39,Bebek goreng,,B,own,3,false,false,vs ayam goreng
+B40,Ayam rica-rica,,C,own,4,false,false,red sambal chicken; vs geprek
+B41,Ayam kremes,,C,var,3,false,false,crumb flakes; belongs with fried chicken
+B42,Sate Padang,,C,own,4,false,false,yellow sauce; vs sate ayam
+B43,Sate lilit,,C,own,4,false,false,lemongrass skewer; BE confused it with sate udang
+B44,Sate usus / ati ampela / sapi,,C,own,3,false,false,skewer type decides kcal; looks alike
+B45,Sop buntut,,B,own,3,false,false,vs sop iga
+B46,Sop kambing / gulai kambing,,C,own,4,false,false,BE weakest family; vs konro/coto
+B47,Empal gentong,,C,own,4,false,false,coconut beef soup; vs soto Betawi
+B48,Coto Makassar / konro,,C,own,4,false,false,vs soto family
+B49,Tengkleng,,C,own,4,false,false,goat bones in thin gulai
+B50,Iga penyet / iga bakar,,B,own,3,false,false,vs sop iga
+B51,Dendeng balado / empal goreng / gepuk,,C,own,3,false,false,thin fried beef; vs abon
+B52,Abon,,C,own,4,false,false,fluffy topping; tiny quantity
+B53,Udang goreng / balado,,B,own,3,false,false,shrimp whole
+B54,Cumi goreng / saus,,B,own,3,false,false,rings; vs bawang goreng
+B55,Ikan asin,,B,own,3,false,false,small and dark
+B56,Pepes ikan / pepes tahu,,C,own,4,false,false,wrapped in leaf; contents hidden
+B57,Kepiting / seafood saus,,B,own,4,false,false,shells
+B58,Ati ampela / ceker / jeroan goreng,,C,own,3,false,false,offal pieces look alike
+B59,Telur rebus,,A,own,2,false,false,whole/halved
+B60,Telur asin,,B,own,3,false,false,vs telur rebus when peeled
+B61,Bayam bening / sayur bayam,,C,own,3,false,false,clear green soup; vs sayur sop
+B62,Sayur sop,,C,own,3,false,false,vs sop ayam clear
+B63,Terong balado,,B,own,3,false,false,eggplant under sambal
+B64,Kentang balado,,B,own,3,false,false,vs perkedel/terong balado
+B65,Oncom goreng / tempe kering,,C,own,4,false,false,small crumbs
+B66,Tahu sumedang / tahu crispy,,B,own,3,false,false,vs tahu goreng
+B67,Singkong / ubi goreng,,B,own,3,false,false,vs kentang goreng
+B68,Tumis labu siam / sayur nangka / tauge,,C,own,4,false,false,pale stir-fries look alike
+B69,Acar / asinan,,D,grp,3,false,false,pickled cucumber/carrot
+B70,Sambal hijau / matah / dabu-dabu / botol,,D,grp,2,false,false,"joins Part A #70-71: one sambal group, 6 colours/types"
+B71,Bawang goreng / saus tomat / kecap,,D,grp,3,false,false,toppings and condiments; tiny
+B72,Selat Solo,,C,own,4,false,false,beef steak Javanese; vs steak
+B73,Kerak telor,,B,own,4,false,false,Betawi omelette crust
+B74,Rujak buah / asinan buah,,B,own,3,false,false,fruit with sauce; vs fruit
+B75,Lemper / arem-arem,,B,own,3,false,false,leaf-wrapped; vs nasi bakar
+B76,Onde-onde,,B,own,3,false,false,sesame ball
+B77,Nagasari / kue lapis / getuk,,B,own,3,false,false,steamed kue family: green/pink layers
+B78,Dadar gulung,,B,own,3,false,false,green crepe; vs risoles
+B79,Kue putu / putu ayu / kue cucur / apem,,B,own,4,false,false,small steamed/fried cakes
+B80,Cenil / wajik / jadah,,C,own,4,false,false,sticky sweets look alike
+B81,Bika ambon / lapis legit / bolu kukus,,B,own,4,false,false,sliced cakes
+B82,Kue cubit / pukis / kue lumpur,,B,own,4,false,false,vs martabak mini
+B83,Bakpia / wingko / kue ape,,B,own,4,false,false,regional sweets
+B84,Pisang molen / pisang bakar,,B,own,3,false,false,vs pisang goreng
+B85,Roti canai / roti john,,B,own,4,false,false,vs martabak
+B86,Pisang,banana,Ap,own,2,false,false,fruit: public data abundant
+B87,Jeruk / apel / pir,,Ap,own,2,false,false,"3 fruits, one family"
+B88,Semangka / melon,,Ap,own,3,false,false,slices
+B89,Pepaya / mangga / nanas,,Ap,own,3,false,false,cut pieces; ripe colours alike
+B90,Anggur / jambu / salak / rambutan,,Ap,own,3,false,false,small whole fruit
+B91,Alpukat / durian / manggis,,Ap,own,4,false,false,opened shapes
+B92,Gorengan campur,plate,P,comp,2,false,false,"bakwan, tahu, tempe, pisang on one plate: box every piece"
+B93,Nasi box / prasmanan / catering plate,,P,comp,2,false,false,ayam + telur + sayur + kerupuk in one box
+B94,Nasi pecel,plate,P,comp,3,false,false,rice + sayur + peanut sauce + rempeyek
+B95,Angkringan spread,"sate, gorengan, nasi kucing",P,comp,3,false,false,many small items
+B96,Minuman in cup/glass,"tea, coffee, milk, juice, boba, es",E,man,2,false,false,identity not visible; user picks. Collect 300 annotated glasses/cups so Stage 1 finds them
+B97,"Other drinks: kemasan/soda, wedang-bandrek-bajigur, es campur-teler-cendol-dawet",,E,man,3,false,false,branded or layered; manual pick or search; BE confuses bandrek vs bajigur
+B100,Air putih,,E,man,1,false,false,log only; no image class
+N1,Nasi gandul,,P,comp,3,false,false,Pati rice with beef gravy; vs soto/rawon plate
+N2,Nasi tutug oven,,P,comp,3,false,false,Sundanese oven rice with sides
+N3,Nasi lemak,,P,comp,3,false,false,"coconut rice with anchovy, egg, cucumber; Malay set"
+N4,Nasi ayam Hainan,,B,own,3,false,false,poached chicken on oily rice; vs ayam bakar/rebus
+N5,Nasi tim ayam,,B,own,4,false,false,steamed rice bowl with chicken; vs bubur
+N6,Nasi merah / nasi jagung,,B,own,4,false,false,brown or corn rice; vs nasi putih
+N7,Soto Bandung,,C,own,4,false,false,clear soto with radish and soybeans
+N8,Soto Medan,,C,own,4,false,false,coconut milk soto with potato patty
+N9,Soto Kudus,,C,own,4,false,false,"small bowl, buffalo or chicken"
+N10,Soto tangkar / soto babat,,C,own,4,false,false,BEEI's weak soto pair
+N11,Laksa / mie kuah seafood,,C,own,4,false,false,orange coconut noodle soup
+N12,Sup krim / sop jagung,,B,own,4,false,false,thick cream soup
+N13,Bakso bakar / pentol,,B,own,3,false,false,grilled meatball skewers with sauce
+N14,Bakso Malang,siomay + bakso + pangsit,C,own,3,false,false,mixed bakso bowl; vs bakso kuah
+N15,Ayam betutu,,C,own,4,false,false,Balinese spiced chicken
+N16,Ayam pop,,C,own,3,false,false,pale Padang chicken; vs ayam rebus
+N17,Ayam bumbu rujak / woku,,C,own,4,false,false,sweet-spicy chicken stews
+N18,Ayam taliwang,,C,own,4,false,false,Lombok grilled chicken in red sambal
+N19,Ayam suwir / ayam rebus,,B,own,3,false,false,shredded or poached chicken
+N20,Ayam panggang / ayam utuh,,C,own,3,false,false,whole roast chicken; vs ayam bakar pieces
+N21,Chicken teriyaki / rice bowl,,B,own,3,false,false,donburi-style bowl
+N22,Dada ayam rebus / panggang,diet,B,own,3,false,false,"plain breast, diet logging"
+N23,Chicken wings / Korean fried chicken,,B,own,3,false,false,glazed wings; vs ayam goreng
+N24,Rendang ayam,,C,own,4,false,false,vs rendang daging (#39) and opor
+N25,Sate udang / sate kerang,,C,own,4,false,false,seafood skewers; vs sate lilit
+N26,Gulai tunjang / kikil,,C,own,4,false,false,beef tendon curry
+N27,Bistik Jawa,,B,own,4,false,false,Javanese beef steak with gravy
+N28,Gurame asam manis,,B,own,3,false,false,whole fried fish in sweet-sour sauce
+N29,Ikan patin / ikan pindang,,C,own,4,false,false,fish in yellow or clear broth
+N30,Salmon panggang / steak ikan,,B,own,3,false,false,fillet; diet logging
+N31,Daun singkong / sayur rebus,,C,own,4,false,false,boiled greens look alike
+N32,Gulai nangka / sayur nangka,,C,own,4,false,false,jackfruit curry; vs gudeg
+N33,Tumis jamur,,C,own,4,false,false,mushroom stir-fry
+N34,Tumis pare / oseng pare,,C,own,4,false,false,bitter melon stir-fry
+N35,Oseng tempe kacang panjang,,C,own,4,false,false,vs tempe orek and green stir-fries
+N36,Brokoli / kembang kol rebus,,B,own,3,false,false,diet vegetables
+N37,Sayuran mentah,"tomat, timun, wortel",D,grp,3,false,false,raw vegetables as sides
+N38,Telur orak-arik,,B,own,3,false,false,scrambled egg; vs omelette
+N39,Telur bumbu Bali / semur telur,,B,own,4,false,false,eggs in sauce; vs telur balado
+N40,Tahu bulat,,B,own,3,false,false,"round fried tofu, street snack"
+N41,Combro / misro,,B,own,4,false,false,cassava fritter fillings
+N42,Lumpia basah,,C,own,3,false,false,fresh spring roll; vs lumpia goreng
+N43,Pangsit goreng / pangsit kuah,,B,own,3,false,false,wonton
+N44,Kroket,,B,own,3,false,false,potato croquette; vs perkedel
+N45,Sempol / bakso aci,,C,grp,3,false,false,joins cilok/cimol family
+N46,Tela-tela / kentang spiral,,B,own,4,false,false,cassava or potato snack
+N47,Cheese stick / cheese roll,,B,own,4,false,false,fried cheese pastry
+N48,Kue sus / egg tart,,B,own,4,false,false,choux or tart
+N49,Pie susu,,B,own,4,false,false,Bali milk pie
+N50,Bolu gulung / kue lapis cokelat,,B,own,4,false,false,rolled sponge
+N51,Churros / donat kentang,,B,own,4,false,false,fried dough
+N52,Takoyaki,,B,own,4,false,false,octopus balls with sauce
+N53,Gyoza,,B,own,4,false,false,pan-fried dumplings; vs dimsum
+N54,Bibimbap,,B,own,4,false,false,Korean rice bowl
+N55,Kimchi / banchan,,D,grp,4,false,false,red pickled side
+N56,Korean corn dog / odeng,,B,own,4,false,false,street snack skewers
+N57,Puding / agar-agar,,B,own,3,false,false,set desserts
+N58,Cheesecake / tiramisu,,Ap,own,4,false,false,cake slice family
+N59,Yogurt / granola bowl,,B,own,3,false,false,breakfast bowl
+N60,Smoothie bowl,,B,own,4,false,false,purple/pink bowl with toppings
+N61,Alpukat toast / roti gandum,,Ap,own,3,false,false,toast with topping
+N62,Stroberi,,Ap,own,3,false,false,red fruit
+N63,Kelapa muda,daging,Ap,own,4,false,false,young coconut flesh
+N64,Lengkeng / leci,,Ap,own,4,false,false,small round fruit
+N65,Jambu air / belimbing,,Ap,own,4,false,false,bell and star fruit
+N66,Sirsak / nangka,,Ap,own,4,false,false,large spiky or segmented fruit
+N67,Buah naga / kiwi,,Ap,own,4,false,false,cut pink or green fruit
+N68,Markisa / delima / kedondong,,Ap,own,4,false,false,small seasonal fruit
+N69,Tahu putih / tempe mentah,,B,own,3,false,false,raw blocks for cooking logs
+N70,Keju / telur mentah,,Ap,own,4,false,false,cheese slices; raw eggs
+bukan_makanan,Bukan makanan,Not food,,,,false,false,"reserved stage two class, no image folder"

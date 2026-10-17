@@ -109,6 +109,8 @@ def main(argv: list[str] | None = None) -> None:
     export_actions.add_parser("parity", help="compare exported outputs and decoded masks")
     export_actions.add_parser("bundle", help="write validated manifest example")
     commands.add_parser("goldens", help="generate synthetic preprocessing vectors")
+    taxonomy_command = commands.add_parser("taxonomy", help="class map build and check")
+    taxonomy_command.add_argument("taxonomy_action", choices=["check", "build"])
     arguments, remaining = parser.parse_known_args(argv)
 
     if arguments.command == "doctor":
@@ -119,6 +121,16 @@ def main(argv: list[str] | None = None) -> None:
         from caloreye.export.goldens import main as generate_goldens
 
         generate_goldens(remaining)
+
+    if arguments.command == "taxonomy":
+        from caloreye.taxonomy import main as run_taxonomy
+
+        exit_code, report_lines = run_taxonomy([arguments.taxonomy_action, *remaining])
+
+        for report_line in report_lines:
+            print(report_line)
+
+        raise SystemExit(exit_code)
 
     if arguments.command == "export":
         if arguments.export_action == "spike":
