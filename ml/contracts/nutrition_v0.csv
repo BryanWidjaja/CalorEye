@@ -1,0 +1,7 @@
+class_name,dish_idx,kcal_per_100g,default_portion_g,status,source
+ayam geprek,0,263,120,[provisional],Kementan 263 kcal/100 g recipe-uncertain lead; 120 g scenario portion
+ayam goreng,1,298,100,[provisional],TKPI 2017 mirror fried chicken scenario; portion assumed
+rendang,2,193,100,[provisional],TKPI 2017 mirror; portion assumed
+beef burger,3,258,200,[provisional],TKPI 2017 mirror; 200 g definition may not match a full sandwich
+mie goreng,4,172,250,[provisional],derived from 430 kcal per plate at 250 g [est.]
+nasi putih,5,175,150,[provisional],Kemenkes cooked rice exchange value 175 kcal/100 g; portion assumed

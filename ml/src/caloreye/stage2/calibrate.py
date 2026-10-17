@@ -7,6 +7,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from caloreye.data.export_s2 import NOT_FOOD_INDEX
+from caloreye.evalx.metrics import expected_calibration_error
 from caloreye.export.parity import load_runtime_method, require_contiguous
 from caloreye.paths import get_data_root_dir
 from caloreye.runs import start_run
@@ -21,7 +22,6 @@ from caloreye.stage2.train import CLASS_NAMES, MODEL_DIR_NAME, TRAINED_WEIGHTS_N
 
 PROGRAM_NAME = "efficientnet-b0-seven-trained.pte"
 CALIBRATION_NAME = "efficientnet-b0-seven-trained.calibration.json"
-BIN_COUNT = 15
 COVERAGES = (1.0, 0.9, 0.75, 0.5)
 TARGET_ACCURACY = 0.90
 MIN_COVERAGE = 0.5
@@ -118,37 +118,6 @@ def negative_log_likelihood(probabilities: np.ndarray, labels: np.ndarray) -> fl
     chosen = probabilities[np.arange(len(labels)), labels]
 
     return float(-np.log(np.clip(chosen, PROBABILITY_FLOOR, 1.0)).mean())
-
-def expected_calibration_error(
-        probabilities: np.ndarray,
-        labels: np.ndarray
-    ) -> tuple[float, list]:
-    confidences = probabilities.max(axis=1)
-    correct = probabilities.argmax(axis=1) == labels
-    edges = np.linspace(0.0, 1.0, BIN_COUNT + 1)
-    table = []
-    error = 0.0
-
-    for index in range(BIN_COUNT):
-        in_bin = (confidences > edges[index]) & (confidences <= edges[index + 1])
-
-        if not in_bin.any():
-            continue
-
-        bin_accuracy = float(correct[in_bin].mean())
-        bin_confidence = float(confidences[in_bin].mean())
-        error += in_bin.mean() * abs(bin_accuracy - bin_confidence)
-        table.append(
-            {
-                "low": float(edges[index]),
-                "high": float(edges[index + 1]),
-                "count": int(in_bin.sum()),
-                "accuracy": bin_accuracy,
-                "confidence": bin_confidence
-            }
-        )
-
-    return float(error), table
 
 def dish_confidence(probabilities: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     dish_probabilities = probabilities[:, :NOT_FOOD_INDEX]

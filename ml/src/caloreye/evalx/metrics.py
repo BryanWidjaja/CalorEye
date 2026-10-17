@@ -3,6 +3,7 @@ import math
 import numpy as np
 
 WILSON_Z = 1.96
+ECE_BIN_COUNT = 15
 
 def wilson_interval(successes: int, total: int, z_value: float = WILSON_Z) -> tuple[float, float]:
     if total == 0:
@@ -72,3 +73,36 @@ def macro_f1(matrix: np.ndarray) -> float:
 
 def accuracy(matrix: np.ndarray) -> float:
     return safe_divide(float(np.trace(matrix)), float(matrix.sum()))
+
+
+def expected_calibration_error(
+        probabilities: np.ndarray,
+        labels: np.ndarray,
+        bin_count: int = ECE_BIN_COUNT
+    ) -> tuple[float, list]:
+    confidences = probabilities.max(axis=1)
+    correct = probabilities.argmax(axis=1) == labels
+    edges = np.linspace(0.0, 1.0, bin_count + 1)
+    table = []
+    error = 0.0
+
+    for index in range(bin_count):
+        in_bin = (confidences > edges[index]) & (confidences <= edges[index + 1])
+
+        if not in_bin.any():
+            continue
+
+        bin_accuracy = float(correct[in_bin].mean())
+        bin_confidence = float(confidences[in_bin].mean())
+        error += in_bin.mean() * abs(bin_accuracy - bin_confidence)
+        table.append(
+            {
+                "low": float(edges[index]),
+                "high": float(edges[index + 1]),
+                "count": int(in_bin.sum()),
+                "accuracy": bin_accuracy,
+                "confidence": bin_confidence
+            }
+        )
+
+    return float(error), table
