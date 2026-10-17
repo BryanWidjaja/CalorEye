@@ -17,7 +17,8 @@ DATA_ACTION_MODULES = {
     "manifest": "caloreye.data.manifest",
     "embed": "caloreye.data.embed",
     "clean": "caloreye.data.clean",
-    "split": "caloreye.data.splits"
+    "split": "caloreye.data.splits",
+    "sam3": "caloreye.data.sam3_label"
 }
 PACKAGE_NOT_INSTALLED = "not installed"
 PRIMARY_CUDA_DEVICE_INDEX = 0
@@ -127,6 +128,8 @@ def main(argv: list[str] | None = None) -> None:
     data_actions.add_parser("embed", help="compute DINOv2 embeddings")
     data_actions.add_parser("clean", help="flag and drop noisy images")
     data_actions.add_parser("split", help="freeze grouped train and val splits")
+    label_command = commands.add_parser("label", help="pseudo labelling")
+    label_command.add_argument("label_action", choices=["sam3"])
     commands.add_parser("goldens", help="generate synthetic preprocessing vectors")
     taxonomy_command = commands.add_parser("taxonomy", help="class map build and check")
     taxonomy_command.add_argument("taxonomy_action", choices=["check", "build"])
@@ -143,6 +146,9 @@ def main(argv: list[str] | None = None) -> None:
 
     if arguments.command == "data":
         run_data_action(arguments.data_action, remaining)
+
+    if arguments.command == "label":
+        run_data_action(arguments.label_action, remaining)
 
     if arguments.command == "taxonomy":
         from caloreye.taxonomy import main as run_taxonomy
