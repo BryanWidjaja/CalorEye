@@ -21,6 +21,7 @@ DATA_ACTION_MODULES = {
     "sam3": "caloreye.data.sam3_label",
     "stage1-train": "caloreye.stage1.train",
     "stage1-verify": "caloreye.stage1.verify",
+    "stage2-train": "caloreye.stage2.train",
     "export-s1": "caloreye.data.export_s1",
     "export-s2": "caloreye.data.export_s2"
 }
@@ -138,6 +139,8 @@ def main(argv: list[str] | None = None) -> None:
     data_actions.add_parser("export-s2", help="write crop spec table")
     stage_one_command = commands.add_parser("stage1", help="stage one model")
     stage_one_command.add_argument("stage1_action", choices=["train", "verify"])
+    stage_two_command = commands.add_parser("stage2", help="stage two model")
+    stage_two_command.add_argument("stage2_action", choices=["train"])
     commands.add_parser("goldens", help="generate synthetic preprocessing vectors")
     taxonomy_command = commands.add_parser("taxonomy", help="class map build and check")
     taxonomy_command.add_argument("taxonomy_action", choices=["check", "build"])
@@ -157,6 +160,9 @@ def main(argv: list[str] | None = None) -> None:
 
     if arguments.command == "stage1":
         run_data_action(f"stage1-{arguments.stage1_action}", remaining)
+
+    if arguments.command == "stage2":
+        run_data_action(f"stage2-{arguments.stage2_action}", remaining)
 
     if arguments.command == "label":
         run_data_action(arguments.label_action, remaining)
