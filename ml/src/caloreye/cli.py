@@ -19,6 +19,7 @@ DATA_ACTION_MODULES = {
     "clean": "caloreye.data.clean",
     "triage": "caloreye.data.triage",
     "merge": "caloreye.data.merge_acquisition",
+    "merge": "caloreye.data.merge_acquisition",
     "split": "caloreye.data.splits",
     "sam3": "caloreye.data.sam3_label",
     "stage1-train": "caloreye.stage1.train",
@@ -155,6 +156,7 @@ def main(argv: list[str] | None = None) -> None:
     data_actions.add_parser("embed", help="compute DINOv2 embeddings")
     data_actions.add_parser("clean", help="flag and drop noisy images")
     data_actions.add_parser("triage", help="triage acquired images")
+    data_actions.add_parser("merge", help="merge web acquisition into acquisition")
     data_actions.add_parser("split", help="freeze grouped train and val splits")
     label_command = commands.add_parser("label", help="pseudo labelling")
     label_command.add_argument("label_action", choices=["sam3"])
