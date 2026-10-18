@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import shutil
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import numpy as np
@@ -9,7 +10,7 @@ import polars as pl
 import timm
 import torch
 from PIL import Image, ImageOps
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import Dataset
 
 from caloreye.data.manifest import (
     ACQUISITION_DIR_NAME,
@@ -23,7 +24,7 @@ from caloreye.runs import hash_file, start_run
 MODEL_NAME = "vit_small_patch14_reg4_dinov2.lvd142m"
 INPUT_SIZE = 224
 BATCH_SIZE = 128
-WORKER_COUNT = 4
+WORKER_COUNT = 12
 SHARD_SIZE = 2048
 HASH_PREFIX_LENGTH = 12
 EMBEDDING_DIR_NAME = "embeddings"
@@ -84,18 +85,18 @@ def embed_shard(
         model: torch.nn.Module,
         mean: torch.Tensor,
         std: torch.Tensor,
-        image_paths: list[Path]
+        image_paths: list[Path],
+        workers: int
     ) -> np.ndarray:
-    loader = DataLoader(
-        ImageDataset(image_paths),
-        batch_size=BATCH_SIZE,
-        num_workers=WORKER_COUNT,
-        shuffle=False
-    )
+    dataset = ImageDataset(image_paths)
     parts = []
 
-    for pixels in loader:
-        parts.append(embed_batch(model, pixels, mean, std))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = [pool.submit(dataset.__getitem__, index) for index in range(len(dataset))]
+
+        for start in range(0, len(futures), BATCH_SIZE):
+            pixels = torch.stack([future.result() for future in futures[start:start + BATCH_SIZE]])
+            parts.append(embed_batch(model, pixels, mean, std))
 
     return np.concatenate(parts, axis=0)
 
@@ -119,7 +120,7 @@ def load_embeddings(embedding_dir: Path) -> tuple[list[str], np.ndarray]:
 
     return image_ids, np.concatenate(parts, axis=0)
 
-def run_embedding(data_root: Path) -> list[str]:
+def run_embedding(data_root: Path, workers: int = WORKER_COUNT) -> list[str]:
     free_bytes = shutil.disk_usage(data_root).free
 
     if free_bytes < MIN_FREE_BYTES:
@@ -146,7 +147,7 @@ def run_embedding(data_root: Path) -> list[str]:
 
         shard_ids = image_ids[start:start + SHARD_SIZE]
         shard_paths = [acquisition_dir / path for path in relative_paths[start:start + SHARD_SIZE]]
-        vectors = embed_shard(model, mean, std, shard_paths)
+        vectors = embed_shard(model, mean, std, shard_paths, workers)
         np.save(embedding_dir / f"{name}{VECTORS_SUFFIX}", vectors)
         ids_path.write_text(json.dumps(shard_ids, indent=JSON_INDENT), encoding="utf-8")
         logging.warning("embedded %d of %d", start + len(shard_ids), len(image_ids))
@@ -156,6 +157,7 @@ def run_embedding(data_root: Path) -> list[str]:
 def main(argv: list[str] | None = None) -> list[str]:
     parser = argparse.ArgumentParser(prog="caloreye data embed")
     parser.add_argument("--data-root", type=Path, default=get_data_root_dir())
+    parser.add_argument("--workers", type=int, default=WORKER_COUNT)
     arguments = parser.parse_args(argv)
     config = {
         "model": MODEL_NAME,
@@ -165,4 +167,4 @@ def main(argv: list[str] | None = None) -> list[str]:
     }
     start_run("data-embed", config)
 
-    return run_embedding(arguments.data_root)
+    return run_embedding(arguments.data_root, arguments.workers)
