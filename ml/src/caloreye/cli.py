@@ -19,7 +19,6 @@ DATA_ACTION_MODULES = {
     "clean": "caloreye.data.clean",
     "triage": "caloreye.data.triage",
     "merge": "caloreye.data.merge_acquisition",
-    "merge": "caloreye.data.merge_acquisition",
     "split": "caloreye.data.splits",
     "sam3": "caloreye.data.sam3_label",
     "stage1-train": "caloreye.stage1.train",

@@ -9,6 +9,8 @@ from caloreye.paths import REPO_ROOT_DIR, get_data_root_dir
 from caloreye.taxonomy import PILOT_SOURCE_IDS
 
 SAMPLE_PER_SIGNAL = 50
+RANK_POOL = 10000
+RANK_STEP = RANK_POOL // SAMPLE_PER_SIGNAL - 1
 SIGNALS = ("watermark_or_logo", "text_poster_or_menu", "not_food", "class_mismatch", "duplicates", "pilot")
 CALIBRATION_COLUMNS = ("candidate_id", "source_id", "signal", "score", "truth_decision", "truth_reason")
 
@@ -25,15 +27,18 @@ def sample_signal(frame: pl.LazyFrame, signal: str, seen: set[str]) -> list[dict
         candidates = frame.filter(pl.col("discovery_route").str.starts_with("web"))
         candidates = candidates.with_columns(pl.col(signal).alias("calibration_score"))
 
-    rows = candidates.sort("calibration_score", descending=True).head(500).collect().to_dicts()
+    rows = candidates.sort("calibration_score", descending=True).head(RANK_POOL).collect().to_dicts()
     selected = []
 
-    for row in rows:
-        if row["candidate_id"] in seen:
+    next_target = 0
+
+    for position, row in enumerate(rows):
+        if position < next_target or row["candidate_id"] in seen:
             continue
 
         selected.append(row)
         seen.add(row["candidate_id"])
+        next_target = position + RANK_STEP - 1
 
         if len(selected) == SAMPLE_PER_SIGNAL:
             break
