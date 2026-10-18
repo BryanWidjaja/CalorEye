@@ -19,6 +19,9 @@ DECISION_VERSION = "1"
 DISABLED_CUTOFF = 1e9
 TRUSTED_ROUTES = ("food101", "uec256")
 CALIBRATION_SIGNALS = ("watermark_or_logo", "text_poster_or_menu", "not_food", "class_mismatch", "duplicates")
+REVIEW_SIGNALS = ("watermark_or_logo", "text_poster_or_menu", "not_food", "artifact_margin", "mismatch_score")
+REVIEW_FRACTION = 0.008
+PILOT_REVIEW_FRACTION = 0.02
 ARTIFACT_SIGNALS = ("collage_or_grid", "screenshot_or_ui", "drawing_or_illustration", "packaged_product", "person_only")
 
 def wilson_interval(successes: int, total: int) -> tuple[float, float]:
@@ -100,6 +103,31 @@ def calibrate_thresholds(rows: list[dict], probe: pl.DataFrame) -> tuple[dict, l
 
     return thresholds, report
 
+def build_review_cutoffs(frame: pl.DataFrame) -> dict:
+    web = frame.filter(pl.col("discovery_route").str.starts_with("web"))
+    pilot = web.filter(pl.col("source_id").is_in(PILOT_SOURCE_IDS))
+    others = web.filter(~pl.col("source_id").is_in(PILOT_SOURCE_IDS))
+    cutoffs = {"review_web": {}, "review_pilot": {}}
+
+    for signal in REVIEW_SIGNALS:
+        cutoffs["review_web"][signal] = float(others[signal].quantile(1 - REVIEW_FRACTION))
+        cutoffs["review_pilot"][signal] = float(pilot[signal].quantile(1 - PILOT_REVIEW_FRACTION))
+
+    return cutoffs
+
+def review_reasons(row: dict, thresholds: dict) -> list[str]:
+    cutoffs = thresholds["review_pilot"]
+    reasons = []
+
+    if row["source_id"] not in PILOT_SOURCE_IDS:
+        cutoffs = thresholds["review_web"]
+
+    for signal in REVIEW_SIGNALS:
+        if row[signal] >= cutoffs[signal]:
+            reasons.append(f"review_{signal}")
+
+    return reasons
+
 def decide_row(row: dict, thresholds: dict, multi_dish: set[str]) -> tuple[str, list[str]]:
     reasons = list(row["hard_reasons"] or [])
 
@@ -149,14 +177,10 @@ def decide_row(row: dict, thresholds: dict, multi_dish: set[str]) -> tuple[str, 
     if reasons:
         return "drop", reasons
 
-    suspicious = watermark or poster or not_food or wrong_class
+    reasons = review_reasons(row, thresholds)
 
-    for signal in ARTIFACT_SIGNALS:
-        if row[signal] > row["given_class_score"]:
-            suspicious = True
-
-    if suspicious or row["source_id"] in PILOT_SOURCE_IDS and is_label_suspect:
-        return "review", ["uncertain"]
+    if reasons:
+        return "review", reasons
 
     return "keep", []
 
