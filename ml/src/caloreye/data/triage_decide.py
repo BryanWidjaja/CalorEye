@@ -226,6 +226,11 @@ def run_decision(data_root: Path) -> tuple[Path, Counter]:
         "candidate_id", "confident_learning_suspect", "embedding_cluster", "embedding_cluster_size"
     )
     frame = probe.join(score, on="candidate_id", how="left").join(agree, on="candidate_id", how="left")
+    frame = frame.with_columns(
+        (pl.max_horizontal([pl.col(signal) for signal in ARTIFACT_SIGNALS]) - pl.col("given_class_score")).alias("artifact_margin"),
+        (-pl.col("class_margin")).alias("mismatch_score")
+    )
+    thresholds.update(build_review_cutoffs(frame))
     frame = frame.sort("embedding_cluster", "width", "height", descending=[False, True, True], nulls_last=True)
     frame = frame.with_columns(pl.col("candidate_id").cum_count().over("embedding_cluster").alias("cluster_rank"))
     multi_dish = set()
