@@ -283,10 +283,45 @@ def cross_folder_lines(frame: pl.DataFrame) -> list[str]:
 def write_manifest(frame: pl.DataFrame, work_dir: Path, stamp: str) -> Path:
     work_dir.mkdir(parents=True, exist_ok=True)
     dated_path = work_dir / f"manifest-{stamp}.parquet"
-    frame.write_parquet(dated_path)
-    frame.write_parquet(work_dir / LATEST_MANIFEST_NAME)
+    dated_temp = dated_path.with_suffix(".tmp")
+    latest_path = work_dir / LATEST_MANIFEST_NAME
+    latest_temp = latest_path.with_suffix(".tmp")
+    frame.write_parquet(dated_temp)
+    frame.write_parquet(latest_temp)
+    dated_temp.replace(dated_path)
+    latest_temp.replace(latest_path)
 
     return dated_path
+
+def attach_triage_flags(frame: pl.DataFrame, data_root: Path) -> pl.DataFrame:
+    acquisition_dir = data_root / ACQUISITION_DIR_NAME
+    marker_path = acquisition_dir / "clean" / "applied.json"
+
+    if not marker_path.is_file():
+        return frame
+
+    decision_path = acquisition_dir / "clean" / "decisions.parquet"
+
+    if not decision_path.is_file():
+        raise FileNotFoundError(f"triage applied but decisions missing: {decision_path}")
+
+    decisions = pl.read_parquet(decision_path)
+    paths = []
+
+    for local_path in decisions["local_path"]:
+        paths.append(Path(local_path).relative_to(acquisition_dir).as_posix())
+
+    flags = decisions.select(
+        pl.Series("path", paths),
+        pl.col("decision").alias("triage_decision"),
+        pl.col("reasons").alias("triage_reasons")
+    )
+    joined = frame.join(flags, on="path", how="left")
+
+    if joined["triage_decision"].null_count():
+        raise ValueError("triage decisions do not cover every manifest image")
+
+    return joined
 
 def build_manifest(data_root: Path, stamp: str) -> tuple[pl.DataFrame, list[str], Path]:
     acquisition_dir = data_root / ACQUISITION_DIR_NAME
@@ -294,6 +329,7 @@ def build_manifest(data_root: Path, stamp: str) -> tuple[pl.DataFrame, list[str]
     rows = scan_rows(acquisition_dir, candidates)
     frame = pl.DataFrame(rows, schema=SCHEMA, strict=False)
     frame, near_pair_count = assign_clusters(frame)
+    frame = attach_triage_flags(frame, data_root)
     manifest_path = write_manifest(frame, data_root / WORK_DIR_NAME, stamp)
     report = summarize(frame, near_pair_count) + [""] + cross_folder_lines(frame)
 

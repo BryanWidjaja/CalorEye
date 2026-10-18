@@ -153,6 +153,9 @@ def finish_flags(frame: pl.DataFrame) -> pl.DataFrame:
     )
     drop_any = pl.col("is_tiny") | pl.col("is_duplicate_extra") | pl.col("is_pilot_outlier")
 
+    if "triage_decision" in frame.columns:
+        drop_any = drop_any | (pl.col("triage_decision") != KEEP_DECISION)
+
     return frame.with_columns((~drop_any).alias("keep")).select(
         [
             "image_id", "path", "source_id", "outlier_score", "outlier_z", "knn_conflict",

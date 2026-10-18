@@ -133,6 +133,11 @@ def compute_split_hash(frame: pl.DataFrame) -> str:
 def load_kept_rows(work_dir: Path) -> pl.DataFrame:
     flags = pl.read_parquet(find_latest_flags(work_dir)).filter(pl.col("keep"))
     manifest = pl.read_parquet(work_dir / LATEST_MANIFEST_NAME)
+
+    if "triage_decision" in manifest.columns:
+        manifest = manifest.filter(pl.col("triage_decision") == "keep")
+        flags = flags.join(manifest.select("path"), on="path", how="inner")
+
     columns = manifest.select(["path", "host", "dup_cluster"])
 
     return flags.select(["image_id", "path", "source_id"]).join(columns, on="path", how="left")
