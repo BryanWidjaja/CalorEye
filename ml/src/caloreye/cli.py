@@ -17,7 +17,7 @@ DATA_ACTION_MODULES = {
     "manifest": "caloreye.data.manifest",
     "embed": "caloreye.data.embed",
     "clean": "caloreye.data.clean",
-    "triage": "caloreye.data.triage_probe",
+    "triage": "caloreye.data.triage",
     "split": "caloreye.data.splits",
     "sam3": "caloreye.data.sam3_label",
     "stage1-train": "caloreye.stage1.train",
