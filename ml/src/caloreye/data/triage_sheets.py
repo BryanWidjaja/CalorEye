@@ -175,7 +175,8 @@ def write_review_sheets(clean_dir: Path) -> tuple[int, int]:
         how="left"
     )
     frame = frame.with_columns(pl.max_horizontal(*categories).fill_null(0.0).alias("review_score"))
-    rows = frame.sort("review_score", descending=True).collect().to_dicts()
+    frame = frame.with_columns(pl.col("source_id").is_in(PILOT_SOURCE_IDS).alias("pilot"))
+    rows = frame.sort(["pilot", "review_score"], descending=True).collect().to_dicts()
     sheet_dir = clean_dir / "sheets"
     sheet_count = 0
 

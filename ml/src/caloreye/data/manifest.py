@@ -215,6 +215,9 @@ def scan_rows(acquisition_dir: Path, candidates: dict) -> list[dict]:
     rows = []
     image_paths = list_image_paths(acquisition_dir / IMAGES_DIR_NAME)
 
+    if candidates:
+        image_paths = [path for path in image_paths if (path.parent.name, path.name) in candidates]
+
     for position, image_path in enumerate(image_paths):
         record = candidates.get((image_path.parent.name, image_path.name), {})
         rows.append(build_row(image_path, acquisition_dir, record))

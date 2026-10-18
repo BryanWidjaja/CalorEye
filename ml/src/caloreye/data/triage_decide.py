@@ -232,7 +232,7 @@ def run_decision(data_root: Path) -> tuple[Path, Counter]:
     )
     thresholds.update(build_review_cutoffs(frame))
     frame = frame.sort("embedding_cluster", "width", "height", descending=[False, True, True], nulls_last=True)
-    frame = frame.with_columns(pl.col("candidate_id").cum_count().over("embedding_cluster").alias("cluster_rank"))
+    frame = frame.with_columns(pl.col("candidate_id").cum_count().over("embedding_cluster", "source_id").alias("cluster_rank"))
     multi_dish = set()
 
     for class_row in read_class_map(CLASS_MAP_PATH):
@@ -253,6 +253,19 @@ def run_decision(data_root: Path) -> tuple[Path, Counter]:
             "reasons": reasons,
             "version": DECISION_VERSION
         })
+
+    keptgroups = set()
+
+    for decisionrow, sourcerow in zip(rows, frame.iter_rows(named=True), strict=True):
+        if decisionrow["decision"] == "keep":
+            keptgroups.add((sourcerow["embedding_cluster"], sourcerow["source_id"]))
+
+    for decisionrow, sourcerow in zip(rows, frame.iter_rows(named=True), strict=True):
+        groupkey = (sourcerow["embedding_cluster"], sourcerow["source_id"])
+
+        if decisionrow["reasons"] == ["near_duplicate_cap"] and groupkey not in keptgroups:
+            decisionrow["decision"] = "review"
+            decisionrow["reasons"] = ["review_near_duplicate_cap"]
 
     decisions = pl.DataFrame(rows).sort("candidate_id")
     output_path = clean_dir / "decisions.parquet"
