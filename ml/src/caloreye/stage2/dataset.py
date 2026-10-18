@@ -1,5 +1,6 @@
 import json
 import random
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import cv2
@@ -32,6 +33,7 @@ from caloreye.taxonomy import PILOT_SOURCE_IDS
 CACHE_DIR_NAME = "s2cache"
 CACHE_MAX_SIDE = 512
 CACHE_JPEG_QUALITY = 95
+CACHE_THREADS = 12
 WHOLE_SCALE_RANGE = (0.35, 1.0)
 WHOLE_RATIO_RANGE = (0.75, 1.3333)
 BOX_JITTER = 0.10
@@ -63,32 +65,36 @@ BYTE_MAX = 255
 def cache_path_for(data_root: Path, image_id: str) -> Path:
     return data_root / WORK_DIR_NAME / CACHE_DIR_NAME / f"{image_id}.jpg"
 
+def write_cache_image(data_root: Path, row: dict) -> bool:
+    target = cache_path_for(data_root, row["image_id"])
+
+    if target.is_file():
+        return False
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    source = data_root / ACQUISITION_DIR_NAME / row["path"]
+    temporary = target.with_suffix(".tmp")
+
+    with Image.open(source) as image:
+        image.draft("RGB", (CACHE_MAX_SIDE * 2, CACHE_MAX_SIDE * 2))
+        rgb_image = convert_to_rgb(ImageOps.exif_transpose(image))
+        rgb_image.thumbnail((CACHE_MAX_SIDE, CACHE_MAX_SIDE), Image.LANCZOS)
+        rgb_image.save(temporary, format="JPEG", quality=CACHE_JPEG_QUALITY)
+
+    temporary.replace(target)
+
+    return True
+
 def build_cache(data_root: Path, rows: list[dict]) -> int:
-    created = 0
-    seen = set()
+    unique = {}
 
     for row in rows:
-        if row["image_id"] in seen:
-            continue
+        unique.setdefault(row["image_id"], row)
 
-        seen.add(row["image_id"])
-        target = cache_path_for(data_root, row["image_id"])
+    with ThreadPoolExecutor(max_workers=CACHE_THREADS) as pool:
+        created = pool.map(lambda row: write_cache_image(data_root, row), unique.values())
 
-        if target.is_file():
-            continue
-
-        target.parent.mkdir(parents=True, exist_ok=True)
-        source = data_root / ACQUISITION_DIR_NAME / row["path"]
-
-        with Image.open(source) as image:
-            image.draft("RGB", (CACHE_MAX_SIDE * 2, CACHE_MAX_SIDE * 2))
-            rgb_image = convert_to_rgb(ImageOps.exif_transpose(image))
-            rgb_image.thumbnail((CACHE_MAX_SIDE, CACHE_MAX_SIDE), Image.LANCZOS)
-            rgb_image.save(target, quality=CACHE_JPEG_QUALITY)
-
-        created += 1
-
-    return created
+        return sum(1 for was_created in created if was_created)
 
 def load_split_rows(data_root: Path, split_name: str) -> list[dict]:
     crops_path = data_root / DATASETS_DIR_NAME / STAGE_TWO_DIR_NAME / CROPS_NAME
