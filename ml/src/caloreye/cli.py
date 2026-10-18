@@ -17,6 +17,7 @@ DATA_ACTION_MODULES = {
     "manifest": "caloreye.data.manifest",
     "embed": "caloreye.data.embed",
     "clean": "caloreye.data.clean",
+    "triage": "caloreye.data.triage_probe",
     "split": "caloreye.data.splits",
     "sam3": "caloreye.data.sam3_label",
     "stage1-train": "caloreye.stage1.train",
@@ -152,6 +153,7 @@ def main(argv: list[str] | None = None) -> None:
     data_actions.add_parser("manifest", help="scan images, hash and cluster duplicates")
     data_actions.add_parser("embed", help="compute DINOv2 embeddings")
     data_actions.add_parser("clean", help="flag and drop noisy images")
+    data_actions.add_parser("triage", help="triage acquired images")
     data_actions.add_parser("split", help="freeze grouped train and val splits")
     label_command = commands.add_parser("label", help="pseudo labelling")
     label_command.add_argument("label_action", choices=["sam3"])
