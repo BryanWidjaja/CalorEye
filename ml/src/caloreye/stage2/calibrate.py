@@ -14,6 +14,7 @@ from caloreye.runs import start_run
 from caloreye.stage2.dataset import (
     LOOKALIKE_SOURCE_IDS,
     CropDataset,
+    build_unseen_box_rows,
     build_unseen_rows,
     load_split_rows,
 )
@@ -217,6 +218,9 @@ def run_calibration(data_root: Path) -> list[str]:
     unseen_rows = build_unseen_rows(data_root)
     unseen_logits, _ = collect_runtime_logits(program_path, data_root, unseen_rows)
     unseen_probabilities = softmax_matrix(unseen_logits, temperature)
+    unseen_box_rows = build_unseen_box_rows(data_root)
+    unseen_box_logits, _ = collect_runtime_logits(program_path, data_root, unseen_box_rows)
+    unseen_box_probabilities = softmax_matrix(unseen_box_logits, temperature)
     result = {
         "data_slice": "web_val",
         "logits_source": "executorch runtime, fp32 xnnpack",
@@ -231,6 +235,11 @@ def run_calibration(data_root: Path) -> list[str]:
         "tau": tau,
         "not_food": not_food_report(calibrated, labels),
         "unseen": unseen_report(unseen_probabilities, unseen_rows, tau["tau_dish"]),
+        "unseen_boxes": unseen_report(
+            unseen_box_probabilities,
+            unseen_box_rows,
+            tau["tau_dish"]
+        ),
         "class_names": CLASS_NAMES,
         "not_food_note": "bukan_makanan has no real non-food photos, precision unvalidated"
     }
@@ -241,6 +250,7 @@ def run_calibration(data_root: Path) -> list[str]:
         f"temperature {temperature:.3f}  ece {raw_ece:.4f} -> {ece:.4f}",
         f"tau_dish {tau}",
         f"unseen {result['unseen']}",
+        f"unseen boxes {result['unseen_boxes']}",
         f"wrote {output_path}"
     ]
 

@@ -23,6 +23,8 @@ DATA_ACTION_MODULES = {
     "stage1-verify": "caloreye.stage1.verify",
     "stage2-train": "caloreye.stage2.train",
     "stage2-calibrate": "caloreye.stage2.calibrate",
+    "stage2-ood": "caloreye.stage2.ood",
+    "stage2-other": "caloreye.stage2.other_class",
     "eval-run": "caloreye.evalx.run",
     "export-trained": "caloreye.export.trained",
     "export-s1": "caloreye.data.export_s1",
@@ -158,7 +160,7 @@ def main(argv: list[str] | None = None) -> None:
     stage_one_command = commands.add_parser("stage1", help="stage one model")
     stage_one_command.add_argument("stage1_action", choices=["train", "verify"])
     stage_two_command = commands.add_parser("stage2", help="stage two model")
-    stage_two_command.add_argument("stage2_action", choices=["train", "calibrate"])
+    stage_two_command.add_argument("stage2_action", choices=["train", "calibrate", "ood", "other"])
     eval_command = commands.add_parser("eval", help="evaluation harness")
     eval_command.add_argument("eval_action", choices=["run"])
     commands.add_parser("goldens", help="generate synthetic preprocessing vectors")

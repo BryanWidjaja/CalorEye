@@ -1,3 +1,4 @@
+import json
 import random
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from caloreye.data.export_s1 import DATASETS_DIR_NAME
 from caloreye.data.export_s2 import (
     CLASS_SOURCE_IDS,
     CROPS_NAME,
+    ORIGIN_GT_BOX,
     ORIGIN_WHOLE,
     STAGE_TWO_DIR_NAME,
 )
@@ -22,6 +24,7 @@ from caloreye.data.manifest import (
     WORK_DIR_NAME,
     convert_to_rgb,
 )
+from caloreye.data.sam3_label import INSTANCES_NAME, STORE_DIR_NAME
 from caloreye.export.goldens import crop_box_with_margin
 from caloreye.export.parity import prepare_stage_two_input
 from caloreye.taxonomy import PILOT_SOURCE_IDS
@@ -42,8 +45,12 @@ COLOR_STRENGTH = 0.2
 BORDER_VALUE = 128
 UNSEEN_PER_FOLDER = 30
 UNSEEN_SEED = 0
+FOLDER_SPLIT_SEED = 0
 LOOKALIKE_SOURCE_IDS = ("7", "8", "54")
 UNSEEN_DISH_INDEX = -1
+UNSEEN_BOX_LIMIT = 3
+UNSEEN_MIN_AREA_FRACTION = 0.05
+UNSEEN_BOX_PROMPT = "food"
 SPLIT_TRAIN = "train"
 SPLIT_VAL = "val"
 UNCLEANED_ORIGIN = ORIGIN_WHOLE
@@ -155,6 +162,63 @@ def build_unseen_rows(data_root: Path) -> list[dict]:
             )
 
     return rows
+
+def read_annotation_area(annotation: dict) -> int:
+    return annotation["area"]
+
+def make_unseen_box_rows(
+        unseen_rows: list[dict],
+        image_records: dict,
+        boxes_by_image: dict
+    ) -> list[dict]:
+    rows = []
+
+    for unseen_row in unseen_rows:
+        record = image_records.get(unseen_row["image_id"])
+
+        if record is None:
+            continue
+
+        annotations = boxes_by_image.get(unseen_row["image_id"], [])
+        largest = sorted(annotations, key=read_annotation_area, reverse=True)
+
+        for annotation in largest[:UNSEEN_BOX_LIMIT]:
+            left, top, box_width, box_height = annotation["bbox"]
+            row = dict(unseen_row)
+            row["x0"] = left / record["width"]
+            row["y0"] = top / record["height"]
+            row["x1"] = (left + box_width) / record["width"]
+            row["y1"] = (top + box_height) / record["height"]
+            row["origin"] = ORIGIN_GT_BOX
+            rows.append(row)
+
+    return rows
+
+def build_unseen_box_rows(data_root: Path) -> list[dict]:
+    store_path = data_root / STORE_DIR_NAME / INSTANCES_NAME
+    payload = json.loads(store_path.read_text(encoding="utf-8"))
+    image_records = {}
+
+    for record in payload["images"]:
+        image_records[record["image_id"]] = record
+
+    boxes_by_image = {}
+
+    for annotation in payload["annotations"]:
+        is_food_prompt = annotation["prompt"] == UNSEEN_BOX_PROMPT
+        is_large = annotation["area_fraction"] >= UNSEEN_MIN_AREA_FRACTION
+
+        if is_food_prompt and is_large:
+            boxes_by_image.setdefault(annotation["image_id"], []).append(annotation)
+
+    return make_unseen_box_rows(build_unseen_rows(data_root), image_records, boxes_by_image)
+
+def split_unseen_folders(unseen_source_ids: list[str]) -> tuple[set[str], set[str]]:
+    folders = sorted(set(unseen_source_ids))
+    random.Random(FOLDER_SPLIT_SEED).shuffle(folders)
+    half = len(folders) // 2
+
+    return set(folders[:half]), set(folders[half:])
 
 def pixel_box(row: dict, width: int, height: int) -> tuple[float, float, float, float]:
     return (row["x0"] * width, row["y0"] * height, row["x1"] * width, row["y1"] * height)

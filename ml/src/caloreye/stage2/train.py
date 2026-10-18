@@ -74,8 +74,8 @@ class RunSetup:
     unseen_rows: list
     publish: bool
 
-def create_model() -> torch.nn.Module:
-    model = timm.create_model(MODEL_NAME, pretrained=True, num_classes=CLASS_COUNT)
+def create_model(class_count: int = CLASS_COUNT) -> torch.nn.Module:
+    model = timm.create_model(MODEL_NAME, pretrained=True, num_classes=class_count)
 
     return model.cuda()
 
@@ -304,20 +304,16 @@ def prepare_rows(data_root: Path, variant: str) -> tuple[list[dict], list[dict],
 
     return train_rows, val_rows, unseen_rows
 
-def run_training(data_root: Path, variant: str, publish: bool) -> list[str]:
-    set_seed(SEED)
-    torch.backends.cudnn.benchmark = True
-    run_dir = start_run("stage2-train", {"variant": variant, "seed": SEED}).run_dir
-    train_rows, val_rows, unseen_rows = prepare_rows(data_root, variant)
-    train_dataset = CropDataset(data_root, train_rows, True, SEED)
-    train_loader = make_loader(train_dataset, True, sampler_weights(train_rows, CLASS_COUNT))
-    val_loader = make_loader(CropDataset(data_root, val_rows, False, SEED), False, None)
-    model = create_model()
+def fit_model(
+        model: torch.nn.Module,
+        train_loader: DataLoader,
+        val_loader: DataLoader,
+        run_dir: Path,
+        class_count: int
+    ) -> list[dict]:
     scaler = torch.amp.GradScaler("cuda")
-    setup = RunSetup(data_root, run_dir, train_rows, val_rows, unseen_rows, publish)
     history = []
     best_f1 = -1.0
-    started = time.time()
     head_optimizer = build_head_optimizer(model)
 
     for epoch in range(HEAD_EPOCHS + FULL_EPOCHS):
@@ -332,7 +328,7 @@ def run_training(data_root: Path, variant: str, publish: bool) -> list[str]:
 
         loss = train_one_epoch(model, train_loader, state, is_head_only)
         logits, labels = collect_logits(model, val_loader)
-        matrix = confusion_matrix(labels, logits.argmax(axis=1), CLASS_COUNT)
+        matrix = confusion_matrix(labels, logits.argmax(axis=1), class_count)
         epoch_f1 = macro_f1(matrix)
         history.append({"epoch": epoch + 1, "train_loss": loss, "val_macro_f1": epoch_f1})
         logging.warning("epoch %d loss %.4f val macro f1 %.4f", epoch + 1, loss, epoch_f1)
@@ -341,6 +337,21 @@ def run_training(data_root: Path, variant: str, publish: bool) -> list[str]:
         if epoch_f1 > best_f1:
             best_f1 = epoch_f1
             torch.save(model.state_dict(), run_dir / BEST_NAME)
+
+    return history
+
+def run_training(data_root: Path, variant: str, publish: bool) -> list[str]:
+    set_seed(SEED)
+    torch.backends.cudnn.benchmark = True
+    run_dir = start_run("stage2-train", {"variant": variant, "seed": SEED}).run_dir
+    train_rows, val_rows, unseen_rows = prepare_rows(data_root, variant)
+    train_dataset = CropDataset(data_root, train_rows, True, SEED)
+    train_loader = make_loader(train_dataset, True, sampler_weights(train_rows, CLASS_COUNT))
+    val_loader = make_loader(CropDataset(data_root, val_rows, False, SEED), False, None)
+    model = create_model()
+    setup = RunSetup(data_root, run_dir, train_rows, val_rows, unseen_rows, publish)
+    started = time.time()
+    history = fit_model(model, train_loader, val_loader, run_dir, CLASS_COUNT)
 
     return finish_run(model, setup, history, started)
 

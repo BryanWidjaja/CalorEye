@@ -57,6 +57,7 @@ POLYGON_EPSILON_FRACTION = 0.002
 MIN_POLYGON_POINTS = 3
 MIN_PART_AREA_FRACTION = 0.0005
 SHARD_SIZE = 100
+SAMPLE_SEED = 0
 SAM3_CACHE_RELATIVE_PATH = Path(".cache/huggingface/hub/models--facebook--sam3/snapshots")
 SAM3_WEIGHTS_PATTERN = "*/sam3.pt"
 STORE_DIR_NAME = "store"
@@ -337,13 +338,63 @@ def write_shard(shard_dir: Path, shard: dict) -> None:
     shard_path = shard_dir / f"shard-{index:05d}.json"
     shard_path.write_text(json.dumps(shard), encoding="utf-8")
 
-def select_targets(data_root: Path, source_ids: list[str]) -> list[dict]:
+def list_non_pilot_source_ids(data_root: Path) -> list[str]:
+    work_dir = data_root / WORK_DIR_NAME
+    kept = pl.read_parquet(find_latest_flags(work_dir)).filter(pl.col("keep"))
+    source_ids = []
+
+    for source_id in sorted(kept["source_id"].unique().to_list()):
+        if source_id not in PILOT_SOURCE_IDS:
+            source_ids.append(source_id)
+
+    return source_ids
+
+def sample_per_folder(targets: list[dict], per_folder: int, priority_ids: set[str]) -> list[dict]:
+    by_source = {}
+
+    for target in targets:
+        by_source.setdefault(target["source_id"], []).append(target)
+
+    sampled = []
+
+    for source_id in sorted(by_source):
+        priority = []
+        remainder = []
+
+        for target in by_source[source_id]:
+            if target["image_id"] in priority_ids:
+                priority.append(target)
+            else:
+                remainder.append(target)
+
+        random.Random(SAMPLE_SEED).shuffle(remainder)
+        room = max(per_folder - len(priority), 0)
+        sampled.extend(priority + remainder[:room])
+
+    return sampled
+
+def select_targets(
+        data_root: Path,
+        source_ids: list[str],
+        per_folder: int | None = None
+    ) -> list[dict]:
     work_dir = data_root / WORK_DIR_NAME
     kept = pl.read_parquet(find_latest_flags(work_dir)).filter(pl.col("keep"))
     targets = kept.filter(pl.col("source_id").is_in(source_ids))
     targets = targets.unique(subset=["image_id"], keep="first").sort("path")
+    target_rows = targets.select(["image_id", "path", "source_id"]).to_dicts()
 
-    return targets.select(["image_id", "path", "source_id"]).to_dicts()
+    if per_folder is None:
+        return target_rows
+
+    from caloreye.stage2.dataset import build_unseen_rows
+
+    unseen_ids = set()
+
+    for unseen_row in build_unseen_rows(data_root):
+        unseen_ids.add(unseen_row["image_id"])
+
+    return sample_per_folder(target_rows, per_folder, unseen_ids)
 
 def merge_shards(shard_dir: Path, store_dir: Path) -> dict[str, int]:
     images = []
@@ -369,7 +420,8 @@ def merge_shards(shard_dir: Path, store_dir: Path) -> dict[str, int]:
 def run_labelling(
         data_root: Path,
         source_ids: list[str],
-        limit: int | None
+        limit: int | None,
+        per_folder: int | None = None
     ) -> tuple[Counter, int, float]:
     free_bytes = shutil.disk_usage(data_root).free
 
@@ -381,7 +433,7 @@ def run_labelling(
     done_ids = read_done_ids(shard_dir)
     targets = []
 
-    for target in select_targets(data_root, source_ids):
+    for target in select_targets(data_root, source_ids, per_folder):
         if target["image_id"] not in done_ids:
             targets.append(target)
 
@@ -484,13 +536,29 @@ def main(argv: list[str] | None = None) -> list[str]:
     parser.add_argument("--data-root", type=Path, default=get_data_root_dir())
     parser.add_argument("--source-id", action="append")
     parser.add_argument("--limit", type=int)
+    parser.add_argument("--others", action="store_true")
+    parser.add_argument("--per-folder", type=int)
     parser.add_argument("--resume", action="store_true")
     arguments = parser.parse_args(argv)
     source_ids = arguments.source_id or list(PILOT_SOURCE_IDS)
+
+    if arguments.others:
+        source_ids = list_non_pilot_source_ids(arguments.data_root)
+
     stamp = datetime.now(UTC).strftime(DATE_FORMAT)
-    config = {"prompts": PROMPTS, "predictor_conf": PREDICTOR_CONF, "source_ids": source_ids}
+    config = {
+        "prompts": PROMPTS,
+        "predictor_conf": PREDICTOR_CONF,
+        "source_ids": source_ids,
+        "per_folder": arguments.per_folder
+    }
     start_run("label-sam3", config)
-    stats, label_count, seconds = run_labelling(arguments.data_root, source_ids, arguments.limit)
+    stats, label_count, seconds = run_labelling(
+        arguments.data_root,
+        source_ids,
+        arguments.limit,
+        arguments.per_folder
+    )
     store_dir = arguments.data_root / STORE_DIR_NAME
     totals = merge_shards(store_dir / SHARD_DIR_NAME, store_dir)
     sheet_path = write_check_sheet(arguments.data_root, stamp)
